@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Record
+from .models import Record, ClientMessages
 
 from django import forms
 
