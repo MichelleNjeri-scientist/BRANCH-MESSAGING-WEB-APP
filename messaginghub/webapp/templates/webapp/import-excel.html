@@ -1,0 +1,24 @@
+{% extends 'webapp/base.html' %}
+
+{% block content %}
+    
+<body>
+    <h1>Import EXCEL</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="excel_file">
+        <input type="submit" value="Upload and Import">
+    </form>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>     
+
+
+{% endblock %}

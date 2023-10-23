@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Record, ClientMessages
+from .models import ClientMessages, AgentResponses
 
 from django import forms
 
@@ -26,21 +26,22 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(widget=PasswordInput())
 
 
-# - Create a record
+# - Create a Message
 
-class CreateRecordForm(forms.ModelForm):
-
-    class Meta:
-
-        model = Record
-        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'city', 'province', 'country']
-
-
-# - Update a record
-
-class UpdateRecordForm(forms.ModelForm):
+class CreateMessageForm(forms.ModelForm):
 
     class Meta:
 
-        model = Record
-        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'city', 'province', 'country']
+        model = ClientMessages
+        fields = ['message_body']
+        # fields = ['client_user_id', 'message_body', 'created_at', 'priority', 'status']
+
+# - Update a Response
+
+class CreateAgentResponsesForm(forms.ModelForm):
+
+    class Meta:
+
+        model = AgentResponses
+        fields = ['response_body']
+        # fields = ['agent_id', 'client_user_id', 'message_id', 'response_body', 'created_at', 'priority']

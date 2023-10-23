@@ -3,7 +3,7 @@
 {% block content %}
 
     <h5> Welcome, {{user}}! 👋 </h5>
-
+    <a class="btn btn-primary" type="button" href="{% url 'import-excel' %}"> IMPORT EXCEL MESSAGES &nbsp; <i class="fa fa-send-o" aria-hidden="true"></i> </a>
     <hr>
 
     <form method="post" class="form-vertical">
@@ -31,13 +31,14 @@
 
             <tr>
 
-                <th scope="col"> ID </th>
+                <th scope="col"> MESSAGE ID </th>
+                <th scope="col"> USER CONVERSATIONS </th>
                 <th scope="col"> MESSAGE BODY </th>
                 <th scope="col"> STATUS </th>
                 <th scope="col"> PRIORITY </th>
                 <th scope="col"> CREATED AT </th>
 
-                <th scope="col"> View </th>
+                <th scope="col"> REPLY </th>
 
             </tr>
 
@@ -53,6 +54,8 @@
 
                 <td> {{client_message.id}} </td>
 
+                <td> <a class="btn btn-success btn-sm" href="{% url 'singular-user' client_message.client_user_id %}"> VIEW <i class="fa fa-eye" aria-hidden="true"></i> </a> </td>
+
                 <td> {{client_message.message_body}}</td>
 
 
@@ -61,7 +64,7 @@
 
                 <td> {{client_message.created_at}} </td>
 
-                <td> <a class="btn btn-success btn-sm" href="{% url 'reply-message' client_message.id %}"> <i class="fa fa-eye" aria-hidden="true"></i> </a> </td>
+                <td> <a class="btn btn-success btn-sm" href="{% url 'agent-response' client_message.id %}"> <i class="fa fa-send-o" aria-hidden="true"></i> </a> </td>
 
             </tr>
 

@@ -1,0 +1,55 @@
+{% extends 'webapp/base.html' %}
+
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+
+    <body>
+
+        <div class="container bg-light shadow-md p-5 form-layout">
+
+            <h3> Send a message </h3>
+
+            <h6> Share your concern with us below. </h6>
+
+            <hr>
+            <br>
+
+            <form method="POST" autocomplete="off">
+
+                {% csrf_token %}
+
+                {{form.message_body|as_crispy_field}}
+
+                <br>
+                
+                <button type="submit" class="btn btn-primary"> 
+                    
+                    SEND &nbsp; <i class="fa fa-mail" aria-hidden="true"></i>
+
+                </button>
+
+                &nbsp;
+
+                <a href="{% url '' %}" class="btn btn-secondary"> 
+
+
+                    Return &nbsp; <i class="fa fa-arrow-left" aria-hidden="true"></i>
+
+                </a>
+
+
+            </form>
+
+        </div>
+
+        <br>
+
+    </body>
+
+{% endblock %}
+
+
+
+

@@ -1,17 +1,19 @@
 import csv
 from django.shortcuts import render, redirect
-from .forms import CreateUserForm, LoginForm, CreateRecordForm, UpdateRecordForm
+from .forms import CreateUserForm, LoginForm, CreateAgentResponsesForm, CreateMessageForm
 
 from django.contrib.auth.models import auth
 from django.contrib.auth import authenticate
 
 from django.contrib.auth.decorators import login_required
 
-from .models import Record, ClientMessages
+from .models import ClientMessages, AgentResponses
 
 from django.contrib import messages
 import pandas as pd
 from datetime import datetime
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 
 
@@ -72,19 +74,6 @@ def my_login(request):
 
     return render(request, 'webapp/my-login.html', context=context)
 
-"""
-# - Dashboard
-
-@login_required(login_url='my-login')
-def dashboard(request):
-
-    my_records = Record.objects.all()
-
-    context = {'records': my_records}
-
-    return render(request, 'webapp/dashboard.html', context=context)
-"""
-
 # - Dashboard
 
 @login_required(login_url='my-login')
@@ -120,82 +109,91 @@ def dashboard(request):
 
     # return render(request, 'webapp/dashboard.html')
 
-# - Create a record 
+# - Create a Message
 
-@login_required(login_url='my-login')
-def create_record(request):
-
-    form = CreateRecordForm()
-
+def create_message(request):
     if request.method == "POST":
-
-        form = CreateRecordForm(request.POST)
-
+        form = CreateMessageForm(request.POST)
+        
         if form.is_valid():
+            message_body = form.cleaned_data['message_body']
 
-            form.save()
+            client_message = ClientMessages(
+                client_user_id=779,
+                message_body=message_body,
+                priority='high' if any(keyword in message_body.lower() for keyword in ["loan", "batch"]) else 'normal',
+                created_at=timezone.now(),
+                status='unread'
+            )
+            client_message.save()
 
-            messages.success(request, "Your record was created!")
+            messages.success(request, "Your message was sent!")
+            return redirect("create-message")
+        else:
+            # Form is not valid, so there are errors
+            messages.error(request, 'Please correct the errors below.')
 
-            return redirect("dashboard")
+            
+
+    else:
+        form = CreateMessageForm()
 
     context = {'form': form}
+    return render(request, 'webapp/create-message.html', context)
 
-    return render(request, 'webapp/create-record.html', context=context)
 
-
-# - Update a record 
+# - Create a Response
 
 @login_required(login_url='my-login')
-def update_record(request, pk):
+def agent_response(request, pk):
 
-    record = Record.objects.get(id=pk)
+    client_message = get_object_or_404(ClientMessages, id=pk)
 
-    form = UpdateRecordForm(instance=record)
+    form = CreateAgentResponsesForm()
 
     if request.method == 'POST':
 
-        form = UpdateRecordForm(request.POST, instance=record)
-
+        
+        form = CreateAgentResponsesForm(request.POST)
         if form.is_valid():
+
+            response_body = form.cleaned_data['response_body']
+            agent_user = request.user
+
+            form = AgentResponses(
+                client_user_id=client_message.client_user_id,
+                response_body=response_body,
+                created_at=timezone.now(),
+                agent_id=agent_user,
+                message_id=client_message
+            )
 
             form.save()
 
-            messages.success(request, "Your record was updated!")
+            client_message.status = 'read'
+            
+            client_message.save()
+
+            messages.success(request, "Your response was sent successfully!")
 
             return redirect("dashboard")
         
-    context = {'form':form}
+    context = {'client_message': client_message, 'form': form}
 
-    return render(request, 'webapp/update-record.html', context=context)
+    return render(request, 'webapp/agent-response.html', context=context)
 
-
-# - Read / View a singular record
-
-@login_required(login_url='my-login')
-def singular_record(request, pk):
-
-    all_records = Record.objects.get(id=pk)
-
-    context = {'record':all_records}
-
-    return render(request, 'webapp/view-record.html', context=context)
-
-
-# - Delete a record
+# - Read / View a singular user record
 
 @login_required(login_url='my-login')
-def delete_record(request, pk):
+def singular_user(request, client_user_id):
 
-    record = Record.objects.get(id=pk)
-
-    record.delete()
-
-    messages.success(request, "Your record was deleted!")
-
-    return redirect("dashboard")
+    client_messages = ClientMessages.objects.filter(client_user_id=client_user_id).order_by('created_at').values()
+    agent_responses = AgentResponses.objects.filter(client_user_id=client_user_id)
+    return render(request, 'webapp/singular-user.html', {'client_messages': client_messages, 'agent_responses': agent_responses, 'client_user_id': client_user_id})
 
 
+
+# - import excel
 
 def import_excel_view(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
